@@ -11,7 +11,7 @@ function showRandomQuote() {
   const quote = quotes[randomIndex];
 
   const quoteDisplay = document.getElementById("quoteDisplay");
-  quoteDisplay.textContent = `"${quote.text}" — ${quote.category}`;
+  quoteDisplay.innerHTML = `"${quote.text}" — ${quote.category}`;
 }
 
 // Function to add a new quote dynamically
@@ -30,11 +30,13 @@ function addQuote() {
   // Add new quote to the array
   quotes.push({ text: newText, category: newCategory });
 
+  // Update DOM to show confirmation
+  document.getElementById("quoteDisplay").innerHTML =
+    `New quote added: "${newText}" — ${newCategory}`;
+
   // Clear input fields
   textInput.value = "";
   categoryInput.value = "";
-
-  alert("New quote added successfully!");
 }
 
 // Event listener for the "Show New Quote" button
