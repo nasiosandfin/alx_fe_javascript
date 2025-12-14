@@ -150,3 +150,75 @@ function importFromJsonFile(event) {
 
 // Event listener for "Show New Quote"
 document.getElementById("newQuote").addEventListener("click", showRandomQuote);
+
+// Mock API endpoint (JSONPlaceholder)
+const SERVER_URL = "https://jsonplaceholder.typicode.com/posts";
+
+// Fetch quotes from server (GET)
+async function fetchQuotesFromServer() {
+  try {
+    const response = await fetch(SERVER_URL);
+    const data = await response.json();
+
+    // Convert mock API posts into quote objects
+    const serverQuotes = data.slice(0, 5).map(item => ({
+      text: item.title,
+      category: "Server"
+    }));
+
+    return serverQuotes;
+  } catch (error) {
+    console.error("Error fetching from server:", error);
+    return [];
+  }
+}
+
+// Post quotes to server (POST)
+async function postQuotesToServer(quotesToSend) {
+  try {
+    await fetch(SERVER_URL, {
+      method: "POST",
+      body: JSON.stringify(quotesToSend),
+      headers: { "Content-Type": "application/json" }
+    });
+  } catch (error) {
+    console.error("Error posting to server:", error);
+  }
+}
+
+// Sync quotes with server
+async function syncQuotes() {
+  const syncStatus = document.getElementById("syncStatus");
+  syncStatus.innerHTML = "Syncing with server...";
+
+  const serverQuotes = await fetchQuotesFromServer();
+
+  if (serverQuotes.length > 0) {
+    // Conflict resolution: server wins
+    const localQuotes = JSON.parse(localStorage.getItem("quotes")) || [];
+
+    const mergedQuotes = [...serverQuotes, ...localQuotes];
+
+    // Remove duplicates by text
+    const uniqueQuotes = [];
+    const seen = new Set();
+
+    mergedQuotes.forEach(q => {
+      if (!seen.has(q.text)) {
+        uniqueQuotes.push(q);
+        seen.add(q.text);
+      }
+    });
+
+    // Save resolved quotes
+    localStorage.setItem("quotes", JSON.stringify(uniqueQuotes));
+    quotes = uniqueQuotes;
+
+    syncStatus.innerHTML = "Quotes synced with server. Conflicts resolved.";
+  } else {
+    syncStatus.innerHTML = "Failed to sync with server.";
+  }
+}
+
+// Periodic syncing every 30 seconds
+setInterval(syncQuotes, 30000);
