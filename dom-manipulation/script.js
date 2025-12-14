@@ -13,6 +13,64 @@ function loadQuotes() {
     ];
   }
 }
+// Populate category dropdown dynamically
+function populateCategories() {
+  const categoryFilter = document.getElementById("categoryFilter");
+
+  // Clear existing options except "All Categories"
+  categoryFilter.innerHTML = `<option value="all">All Categories</option>`;
+
+  // Extract unique categories
+  const categories = [...new Set(quotes.map(q => q.category))];
+
+  // Populate dropdown
+  categories.forEach(category => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    categoryFilter.appendChild(option);
+  });
+
+  // Restore last selected category
+  const savedCategory = localStorage.getItem("selectedCategory");
+  if (savedCategory) {
+    categoryFilter.value = savedCategory;
+    filterQuotes();
+  }
+}
+
+// Filter quotes based on selected category
+function filterQuotes() {
+  const selected = document.getElementById("categoryFilter").value;
+
+  // Save selected category to localStorage
+  localStorage.setItem("selectedCategory", selected);
+
+  let filteredQuotes = quotes;
+
+  if (selected !== "all") {
+    filteredQuotes = quotes.filter(q => q.category === selected);
+  }
+
+  // Update DOM with filtered quotes
+  const quoteDisplay = document.getElementById("quoteDisplay");
+
+  if (filteredQuotes.length === 0) {
+    quoteDisplay.innerHTML = "No quotes found for this category.";
+    return;
+  }
+
+  // Show first matching quote
+  const quote = filteredQuotes[0];
+  quoteDisplay.innerHTML = `"${quote.text}" — ${quote.category}`;
+}
+
+// Update categories when a new quote is added
+const originalAddQuote = addQuote;
+addQuote = function () {
+  originalAddQuote(); // keep your existing addQuote logic
+  populateCategories(); // update dropdown with new category
+};
 
 function saveQuotes() {
   localStorage.setItem("quotes", JSON.stringify(quotes));
